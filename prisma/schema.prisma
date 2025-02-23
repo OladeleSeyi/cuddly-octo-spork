@@ -7,4 +7,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  image         String?
+  password  String?
+  emailVerified DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
+  // Relationships
+  loansGiven   Loan[] @relation("LenderLoans")
+  loansTaken   Loan[] @relation("BorrowerLoans")
+}
+
+model Loan {
+  id                String    @id @default(uuid())
+  lenderId          String
+  borrowerId        String
+  amount            Decimal   @db.Decimal(10, 2)
+  interestRate      Decimal   @db.Decimal(5, 2)
+  termMonths        Int
+  startDate         DateTime
+  endDate           DateTime
+  status            LoanStatus
+  outstandingBalance Decimal  @db.Decimal(10, 2)
+  monthlyPayment    Decimal   @db.Decimal(10, 2)
+  totalPaid         Decimal   @db.Decimal(10, 2) @default(0)
+  lateFees          Decimal   @db.Decimal(10, 2) @default(0)
+  collateral        String?
+  paymentSchedule   Json?
+  riskRating        Int?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relationships
+  lender            User      @relation("LenderLoans", fields: [lenderId], references: [id])
+  borrower          User      @relation("BorrowerLoans", fields: [borrowerId], references: [id])
+
+  @@index([lenderId])
+  @@index([borrowerId])
+}
+
+enum LoanStatus {
+  PENDING
+  APPROVED
+  ACTIVE
+  COMPLETED
+  DEFAULTED
+}
