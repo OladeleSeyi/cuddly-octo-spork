@@ -12,51 +12,73 @@ export const authConfig = {
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+      try {
+        const publicPaths = ["/", "/about", "/login", "/signup", "/api/public"];
+        const isPublicPage = publicPaths.some((path) =>
+          nextUrl.pathname.startsWith(path)
+        );
 
-      if (isOnDashboard) {
-        if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
-      } else if (isLoggedIn) {
-        return Response.redirect(new URL("/dashboard", nextUrl));
+        if (isPublicPage) {
+          return true;
+        }
+
+        const isLoggedIn = !!auth?.user;
+
+        if (isLoggedIn) {
+          return true;
+        } else {
+          return Response.redirect(new URL("/login", nextUrl));
+        }
+      } catch (error) {
+        console.error("error in authorized callback", error);
+        return false;
       }
-      return true;
     },
   },
+
+  session: {
+    maxAge: 60 * 60, // 30 minutes
+  },
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
     Credentials({
       async authorize(credentials) {
-        const parsedCredentials = z
-          .object({ email: z.string().email(), password: z.string().min(6) })
-          .safeParse(credentials);
+        try {
+          const parsedCredentials = z
+            .object({ email: z.string().email(), password: z.string().min(6) })
+            .safeParse(credentials);
 
-        if (!parsedCredentials.success) return null;
+          if (!parsedCredentials.success) {
+            throw new Error("Invalid credentials");
+          }
 
-        const { email, password } = parsedCredentials.data;
+          const { email, password } = parsedCredentials.data;
 
-        const user = await prisma.user.findUnique({
-          where: { email: email.toLowerCase() },
-        });
+          const user = await prisma.user.findUnique({
+            where: { email: email.toLowerCase() },
+          });
 
-        if (!user || !user.password) return null;
+          if (!user || !user.password) {
+            throw new Error("Invalid email or password");
+          }
 
-        const passwordsMatch = await bcrypt.compare(password, user.password);
+          const passwordsMatch = await bcrypt.compare(password, user.password);
 
-        if (!passwordsMatch) return null;
+          if (!passwordsMatch) {
+            throw new Error("Invalid email or password");
+          }
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-        };
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+          };
+        } catch (error: any) {
+          console.error("error in auth", error?.message);
+          throw new Error(error?.message || "Authentication failed");
+        }
       },
     }),
   ],
 } satisfies NextAuthConfig;
 
-export const { auth, signIn, signOut } = NextAuth(authConfig);
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
