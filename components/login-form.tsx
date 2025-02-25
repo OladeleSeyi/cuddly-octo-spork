@@ -59,7 +59,7 @@ export function LoginForm({
       }
 
       router.refresh();
-      router.push("/loans/user");
+      window.location.href = "/loans";
     } catch (error) {
       setError("Something went wrong. Please try again.");
     } finally {
