@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { signIn } from "@/auth";
+import { auth, signIn } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { signUpSchema } from "./validation-schema";
@@ -61,6 +61,28 @@ export async function signUp(prevState: unknown, formData: FormData) {
 }
 
 export async function createLoan(data: CreateLoanData) {
+  const session = await auth();
+
+  if (!session || !session.user) {
+    throw new Error("Unauthorized: You must be logged in to create a loan.");
+  }
+
+  const borrowerId = session.user.id;
+
+  const loanSchema = z.object({
+    amount: z.number().min(1, "Amount must be greater than 0"),
+    interestRate: z.number().min(0).max(100, "Invalid interest rate"),
+    termMonths: z.number().min(1).max(360, "Invalid term duration"),
+    startDate: z.date(),
+    collateral: z.string().optional(),
+    riskRating: z.number().optional(),
+    notes: z.string().optional(),
+  });
+
+  const parsedData = loanSchema.safeParse(data);
+  if (!parsedData.success) {
+    throw new Error("Invalid loan data.");
+  }
   try {
     const endDate = addMonths(data.startDate, data.termMonths);
 
@@ -91,7 +113,7 @@ export async function createLoan(data: CreateLoanData) {
     const loan = await prisma.loan.create({
       data: {
         borrower: {
-          connect: { id: data.borrowerId },
+          connect: { id: borrowerId },
         },
         ...preSave,
       },
@@ -121,6 +143,14 @@ export async function getUserLoans({
 }> {
   try {
     const offset = (page - 1) * limit;
+
+    const session = await auth();
+
+    if (!session || !session.user) {
+      throw new Error("Unauthorized: You must be logged");
+    }
+
+    userId = session.user.id as string;
 
     let where:
       | {
@@ -248,10 +278,17 @@ export async function acceptLoanRequest(data: {
   lenderId: string;
 }) {
   try {
+    const session = await auth();
+
+    if (!session || !session.user) {
+      throw new Error("Unauthorized: You must be logged");
+    }
+
+    const userId = session.user.id as string;
     const loan = (await prisma.loan.update({
       where: { id: data.loanId },
       data: {
-        lenderId: data.lenderId,
+        lenderId: userId,
         status: "APPROVED",
       },
     })) as unknown as Loan;
@@ -269,12 +306,23 @@ export async function updateLoanStatus(data: {
   status: string;
 }) {
   try {
+    const session = await auth();
+
+    if (!session || !session.user) {
+      throw new Error("Unauthorized: You must be logged");
+    }
+
+    const userId = session.user.id as string;
     const loan = (await prisma.loan.update({
-      where: { id: data.loanId },
+      where: { id: data.loanId, borrowerId: userId },
       data: {
         status: data.status as unknown as LoanStatus,
       },
     })) as unknown as Loan;
+
+    if (!loan) {
+      throw new Error("Invalid Data");
+    }
 
     revalidatePath(`/loans/${data.loanId}`);
     return sanitizeLoan(loan) as unknown as Loan;
@@ -286,6 +334,11 @@ export async function updateLoanStatus(data: {
 
 export async function getLoanById(id: string): Promise<Loan> {
   try {
+    const session = await auth();
+
+    if (!session || !session.user) {
+      throw new Error("Unauthorized: You must be logged");
+    }
     const loan = (await prisma.loan.findUnique({
       where: { id },
       include: {
@@ -303,6 +356,10 @@ export async function getLoanById(id: string): Promise<Loan> {
         },
       },
     })) as unknown as Loan;
+
+    if (!loan) {
+      throw new Error("Invalid Data");
+    }
 
     return sanitizeLoan(loan) as unknown as Loan;
   } catch (error) {
