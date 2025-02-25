@@ -60,8 +60,7 @@ export function LoginForm({
 
       router.refresh();
       window.location.href = "/loans";
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setIsPending(false);

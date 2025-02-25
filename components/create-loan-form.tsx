@@ -60,6 +60,10 @@ export function CreateLoanForm({ userId }: { userId: string }) {
     null
   );
 
+  const watchAmount = form.watch("amount");
+  const watchInterestRate = form.watch("interestRate");
+  const watchTermMonths = form.watch("termMonths");
+
   // Calculate monthly payment when amount, interest rate, or term changes
   React.useEffect(() => {
     const amount = Number(form.watch("amount"));
@@ -75,12 +79,7 @@ export function CreateLoanForm({ userId }: { userId: string }) {
     } else {
       setMonthlyPayment(null);
     }
-  }, [
-    form.watch("amount"),
-    form.watch("interestRate"),
-    form.watch("termMonths"),
-    form,
-  ]);
+  }, [form, watchAmount, watchInterestRate, watchTermMonths]);
 
   async function onSubmit(data: LoanFormValues) {
     setIsLoading(true);

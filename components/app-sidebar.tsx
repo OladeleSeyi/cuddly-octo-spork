@@ -46,11 +46,7 @@ const data = {
           url: "/loans/create",
         },
         {
-          title: "Borrowed",
-          url: "/loans/user",
-        },
-        {
-          title: "Investments",
+          title: "Loans and Investments",
           url: "/loans/user",
         },
       ],

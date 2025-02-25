@@ -33,9 +33,8 @@ export function LoanActions({
         lenderId: userId,
       });
       toast.success("Loan request accepted successfully");
-      router.refresh();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error: unknown) {
+      router.push("/loans/user");
+    } catch {
       toast.error("Failed to accept loan request");
     } finally {
       setIsLoading(false);
@@ -50,9 +49,8 @@ export function LoanActions({
         status: newStatus,
       });
       toast.success("Loan status updated successfully");
-      router.refresh();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+      router.push("/loans/user");
+    } catch {
       toast.error("Failed to update loan status");
     } finally {
       setIsLoading(false);

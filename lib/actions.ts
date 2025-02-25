@@ -4,7 +4,6 @@ import { z } from "zod";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { signIn } from "@/auth";
-import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { signUpSchema } from "./validation-schema";
@@ -14,7 +13,6 @@ import { generatePaymentSchedule, sanitizeLoan } from "./utils";
 
 export type SignUpFormType = z.infer<typeof signUpSchema>;
 
-//@
 export async function signUp(prevState: unknown, formData: FormData) {
   try {
     const validatedFields = signUpSchema.parse({
@@ -43,32 +41,23 @@ export async function signUp(prevState: unknown, formData: FormData) {
     });
 
     // Sign in the user
-    try {
-      await signIn("credentials", {
-        email: validatedFields.email,
-        password: validatedFields.password,
-        redirect: false,
-      });
-    } catch (error) {
-      if (error instanceof AuthError) {
-        switch (error.type) {
-          case "CredentialsSignin":
-            return { error: "Invalid credentials" };
-          default:
-            return { error: "Something went wrong" };
-        }
-      }
-      throw error;
-    }
+    const res = await signIn("credentials", {
+      email: validatedFields.email,
+      password: validatedFields.password,
+      redirect: false,
+    });
 
-    redirect("/dashboard");
+    if (res?.error) {
+      return { error: "Invalid credentials" };
+    }
   } catch (error) {
+    console.log(error);
     if (error instanceof z.ZodError) {
       return { error: error.issues[0].message };
     }
-
-    return { error: "Something went wrong" };
+    return { error: "Something went wrong during signup" };
   }
+  redirect("/loans/create");
 }
 
 export async function createLoan(data: CreateLoanData) {
@@ -133,8 +122,18 @@ export async function getUserLoans({
   try {
     const offset = (page - 1) * limit;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let where: any;
+    let where:
+      | {
+          OR: (
+            | {
+                lenderId: string;
+              }
+            | {
+                borrowerId: string;
+              }
+          )[];
+        }
+      | undefined;
 
     if (userId) {
       where = {
@@ -273,8 +272,7 @@ export async function updateLoanStatus(data: {
     const loan = (await prisma.loan.update({
       where: { id: data.loanId },
       data: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        status: data.status as any,
+        status: data.status as unknown as LoanStatus,
       },
     })) as unknown as Loan;
 

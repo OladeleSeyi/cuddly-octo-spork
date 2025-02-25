@@ -1,6 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
@@ -34,10 +33,26 @@ export const authConfig = {
         return false;
       }
     },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (token?.id) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        session.user.id = token.id;
+      }
+      return session;
+    },
   },
 
   session: {
-    maxAge: 60 * 60, // 30 minutes
+    maxAge: 60 * 60, // 60 minutes
+    strategy: "jwt",
   },
   providers: [
     Credentials({
@@ -72,9 +87,11 @@ export const authConfig = {
             email: user.email,
             name: user.name,
           };
-        } catch (error: any) {
-          console.error("error in auth", error?.message);
-          throw new Error(error?.message || "Authentication failed");
+        } catch (error: unknown) {
+          if (error instanceof Error) {
+            console.error("error in auth", error?.message);
+          } 
+          throw new Error( "Authentication failed");
         }
       },
     }),

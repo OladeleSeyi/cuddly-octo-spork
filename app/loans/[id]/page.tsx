@@ -4,10 +4,11 @@ import { getLoanById } from "@/lib/actions";
 import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
-import { Loan, statusColors } from "@/types";
+import { Loan } from "@/types";
 import { BorrowerInfo } from "@/components/borrower-information";
 import { LoanPaymentInfo } from "@/components/loan-payment-info";
 import { LoanDescription } from "@/components/loan-description";
+import { statusColors } from "@/lib/constants";
 
 export default async function LoanPage({
   params,

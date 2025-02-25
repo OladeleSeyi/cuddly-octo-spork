@@ -2,19 +2,24 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { redirect } from "next/navigation";
 
 export default async function HomePage() {
   const session = await auth();
-
+  if (session) {
+    redirect("/loans");
+  }
   return (
     <div className="flex flex-col min-h-screen items-center">
       {/* Hero Section */}
       <section className="w-full min-h-screen py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-background to-muted relative">
         <div className="absolute inset-0">
-          <img
+          <Image
             src="https://res.cloudinary.com/dh8nv9pwu/image/upload/v1740456953/shoeib-abolhassani-ukDEbYnyDsU-unsplash_2_c9rbpr.jpg"
             alt="Lendr Platform"
-            className="object-cover w-full h-full"
+            fill
+            style={{ objectFit: "cover" }}
           />
           <div className="absolute inset-0 bg-black opacity-50"></div>
         </div>

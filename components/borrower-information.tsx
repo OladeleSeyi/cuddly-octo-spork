@@ -19,7 +19,7 @@ export function BorrowerInfo({ loan }: { loan: Loan }) {
               src={loan.borrower?.image as string}
               alt={loan.borrower?.name as string}
             />
-            <AvatarFallback className="rounded-lg">
+            <AvatarFallback className="w-48 h-48 rounded-lg">
               {fallbackText}
             </AvatarFallback>
           </Avatar>

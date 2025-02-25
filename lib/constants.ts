@@ -4,4 +4,4 @@ export const statusColors = {
   ACTIVE: "bg-green-500",
   COMPLETED: "bg-gray-500",
   DEFAULTED: "bg-red-500",
-} as const;
+};
