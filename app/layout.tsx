@@ -35,7 +35,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
       >
         {session ? (
           <SidebarProvider>
@@ -47,13 +47,13 @@ export default async function RootLayout({
                   <Separator orientation="vertical" className="mr-2 h-4" />
                 </div>
               </header>
-              <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+              <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-x-hidden">
                 {children}
               </div>
             </SidebarInset>
           </SidebarProvider>
         ) : (
-          children
+          <div className="overflow-x-hidden">{children}</div>
         )}
       </body>
     </html>

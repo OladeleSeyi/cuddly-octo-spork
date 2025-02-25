@@ -77,6 +77,9 @@ export function LoansTable({
     Record<string, boolean>
   >({});
 
+  const toggleRowExpansion = (id: string) => {
+    setExpandedRows((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
   const columns: ColumnDef<Loan>[] = [
     {
       accessorKey: "borrowerName",
@@ -253,6 +256,7 @@ export function LoansTable({
           }
           className="max-w-sm"
         />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -263,49 +267,49 @@ export function LoansTable({
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {column.id}
+                </DropdownMenuCheckboxItem>
+              ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
+      {/* Table Wrapper for Horizontal Scrolling */}
+      <div className="rounded-md border overflow-x-auto md:overflow-visible">
+        <Table className="min-w-full md:table">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+              <TableRow key={headerGroup.id} className="hidden md:table-row">
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
+
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <React.Fragment key={row.id}>
-                  <TableRow data-state={row.getIsSelected() && "selected"}>
+                  {/* Desktop Table Row */}
+                  <TableRow
+                    className="hidden md:table-row"
+                    data-state={row.getIsSelected() && "selected"}
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(
@@ -315,21 +319,51 @@ export function LoansTable({
                       </TableCell>
                     ))}
                   </TableRow>
-                  {/* Mobile expanded view */}
-                  {expandedRows[row.original.id] && (
-                    <TableRow className="md:hidden">
-                      <TableCell colSpan={columns.length}>
-                        <Card className="border-0 shadow-none">
-                          <CardContent className="p-2 space-y-2">
-                            <div className="grid grid-cols-2 gap-2">
+
+                  {/* Mobile Card View */}
+                  <TableRow className="md:hidden">
+                    <TableCell
+                      colSpan={table.getAllColumns().length}
+                      className="p-0"
+                    >
+                      <Card className="m-2">
+                        <CardContent className="p-4 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="text-sm font-medium text-muted-foreground">
+                                Borrower
+                              </div>
+                              <div className="text-lg font-semibold">
+                                {row.original.borrowerName}
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                toggleRowExpansion(row.original.id)
+                              }
+                            >
+                              <ChevronRight
+                                className={`h-5 w-5 transition-transform ${
+                                  expandedRows[row.original.id]
+                                    ? "rotate-90"
+                                    : ""
+                                }`}
+                              />
+                            </Button>
+                          </div>
+
+                          {expandedRows[row.original.id] && (
+                            <div className="grid grid-cols-2 gap-4 mt-2">
                               <div>
-                                <div className="text-sm font-medium text-muted-foreground">
+                                <div className="text-sm text-muted-foreground">
                                   Interest Rate
                                 </div>
                                 <div>{row.original.interestRate}%</div>
                               </div>
                               <div>
-                                <div className="text-sm font-medium text-muted-foreground">
+                                <div className="text-sm text-muted-foreground">
                                   Monthly Payment
                                 </div>
                                 <div>
@@ -338,7 +372,7 @@ export function LoansTable({
                                 </div>
                               </div>
                               <div>
-                                <div className="text-sm font-medium text-muted-foreground">
+                                <div className="text-sm text-muted-foreground">
                                   Start Date
                                 </div>
                                 <div>
@@ -349,31 +383,31 @@ export function LoansTable({
                                 </div>
                               </div>
                               <div>
-                                <div className="text-sm font-medium text-muted-foreground">
+                                <div className="text-sm text-muted-foreground">
                                   Term
                                 </div>
                                 <div>{row.original.termMonths} months</div>
                               </div>
+                              <Button
+                                className="col-span-2 mt-2"
+                                onClick={() =>
+                                  router.push(`/loans/${row.original.id}`)
+                                }
+                              >
+                                View Details
+                              </Button>
                             </div>
-                            <Button
-                              className="w-full mt-2"
-                              onClick={() =>
-                                router.push(`/loans/${row.original.id}`)
-                              }
-                            >
-                              View Details
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </TableCell>
-                    </TableRow>
-                  )}
+                          )}
+                        </CardContent>
+                      </Card>
+                    </TableCell>
+                  </TableRow>
                 </React.Fragment>
               ))
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
                   No loans found.
@@ -384,12 +418,13 @@ export function LoansTable({
         </Table>
       </div>
 
-      <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-end">
+      {/* Pagination & Selected Rows */}
+      <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
