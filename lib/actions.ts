@@ -120,7 +120,7 @@ export async function createLoan(data: CreateLoanData) {
     });
 
     revalidatePath("/loans");
-    return loan;
+    return sanitizeLoan(loan as unknown as Loan);
   } catch (error) {
     console.error("Error creating loan:", error);
     throw new Error("Failed to create loan");
@@ -147,7 +147,7 @@ export async function getUserLoans({
     const session = await auth();
 
     if (!session || !session.user) {
-      throw new Error("Unauthorized: You must be logged");
+      throw new Error("Unauthorized: You must be logged in");
     }
 
     userId = session.user.id as string;
@@ -186,6 +186,9 @@ export async function getUserLoans({
             image: true,
           },
         },
+      },
+      orderBy: {
+        createdAt: "desc",
       },
       skip: offset,
       take: limit,
@@ -247,6 +250,9 @@ export async function getPendingLoans({
       },
       skip: offset,
       take: limit,
+      orderBy: {
+        createdAt: "desc",
+      },
     })) as unknown as Loan[];
 
     const totalLoans = await prisma.loan.count({
@@ -281,7 +287,7 @@ export async function acceptLoanRequest(data: {
     const session = await auth();
 
     if (!session || !session.user) {
-      throw new Error("Unauthorized: You must be logged");
+      throw new Error("Unauthorized: You must be logged in");
     }
 
     const userId = session.user.id as string;
@@ -309,7 +315,7 @@ export async function updateLoanStatus(data: {
     const session = await auth();
 
     if (!session || !session.user) {
-      throw new Error("Unauthorized: You must be logged");
+      throw new Error("Unauthorized: You must be logged in");
     }
 
     const userId = session.user.id as string;
@@ -337,7 +343,7 @@ export async function getLoanById(id: string): Promise<Loan> {
     const session = await auth();
 
     if (!session || !session.user) {
-      throw new Error("Unauthorized: You must be logged");
+      throw new Error("Unauthorized: You must be logged in");
     }
     const loan = (await prisma.loan.findUnique({
       where: { id },
