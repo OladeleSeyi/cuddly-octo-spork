@@ -9,12 +9,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { signUpSchema } from "./validation-schema";
 import { addMonths } from "date-fns";
-import { CreateLoanData, Loan } from "@/types";
-import { sanitizeLoan } from "./utils";
+import { CreateLoanData, Loan, LoanStatus } from "@/types";
+import { generatePaymentSchedule, sanitizeLoan } from "./utils";
 
 export type SignUpFormType = z.infer<typeof signUpSchema>;
 
-export async function signUp(prevState: any, formData: FormData) {
+//@
+export async function signUp(prevState: unknown, formData: FormData) {
   try {
     const validatedFields = signUpSchema.parse({
       name: formData.get("name"),
@@ -87,7 +88,7 @@ export async function createLoan(data: CreateLoanData) {
       termMonths: data.termMonths,
       startDate: data.startDate,
       endDate: endDate,
-      status: "PENDING",
+      status: "PENDING" as LoanStatus,
       outstandingBalance: data.amount,
       monthlyPayment: data.monthlyPayment,
       totalPaid: 0,
@@ -115,38 +116,6 @@ export async function createLoan(data: CreateLoanData) {
   }
 }
 
-function generatePaymentSchedule(
-  amount: number,
-  interestRate: number,
-  termMonths: number,
-  startDate: Date
-) {
-  const monthlyRate = interestRate / 100 / 12;
-  const monthlyPayment =
-    (amount * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) /
-    (Math.pow(1 + monthlyRate, termMonths) - 1);
-
-  let balance = amount;
-  const schedule: any[] = [];
-
-  for (let i = 0; i < termMonths; i++) {
-    const interest = balance * monthlyRate;
-    const principal = monthlyPayment - interest;
-    balance -= principal;
-
-    schedule.push({
-      paymentNumber: i + 1,
-      dueDate: addMonths(startDate, i),
-      payment: monthlyPayment,
-      principal: principal,
-      interest: interest,
-      remainingBalance: Math.max(0, balance),
-    });
-  }
-
-  return schedule;
-}
-
 export async function getUserLoans({
   userId,
   page = 1,
@@ -164,6 +133,7 @@ export async function getUserLoans({
   try {
     const offset = (page - 1) * limit;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let where: any;
 
     if (userId) {
@@ -190,7 +160,7 @@ export async function getUserLoans({
       },
       skip: offset,
       take: limit,
-    })) as Loan[];
+    })) as unknown as Loan[];
 
     const totalLoans = await prisma.loan.count({
       where: {
@@ -198,18 +168,9 @@ export async function getUserLoans({
       },
     });
 
-    const loans = rawLoans.map((loan: Loan) => ({
-      ...loan,
-      amount: loan.amount.toString(),
-      interestRate: loan.interestRate.toString(),
-      termMonths: loan.termMonths.toString(),
-      monthlyPayment: loan.monthlyPayment.toString(),
-      totalPaid: loan.totalPaid.toString(),
-      outstandingBalance: loan.outstandingBalance.toString(),
-      lateFees: loan.lateFees.toString(),
-      borrowerName: loan.borrower?.name,
-      lenderName: loan?.lender?.name,
-    })) as Loan[];
+    const loans = rawLoans.map((loan: Loan) =>
+      sanitizeLoan(loan)
+    ) as unknown as Loan[];
 
     const result = {
       loans,
@@ -257,7 +218,7 @@ export async function getPendingLoans({
       },
       skip: offset,
       take: limit,
-    })) as Loan[];
+    })) as unknown as Loan[];
 
     const totalLoans = await prisma.loan.count({
       where: {
@@ -266,7 +227,9 @@ export async function getPendingLoans({
       },
     });
 
-    const loans = rawLoans.map((loan: Loan) => sanitizeLoan(loan)) as Loan[];
+    const loans = rawLoans.map((loan: unknown) =>
+      sanitizeLoan(loan as unknown as Loan)
+    ) as Loan[];
 
     const result = {
       loans,
@@ -286,16 +249,16 @@ export async function acceptLoanRequest(data: {
   lenderId: string;
 }) {
   try {
-    const loan = await prisma.loan.update({
+    const loan = (await prisma.loan.update({
       where: { id: data.loanId },
       data: {
         lenderId: data.lenderId,
         status: "APPROVED",
       },
-    });
+    })) as unknown as Loan;
 
     revalidatePath(`/loans/${data.loanId}`);
-    return sanitizeLoan(loan);
+    return sanitizeLoan(loan) as unknown as Loan;
   } catch (error) {
     console.error("Error accepting loan request:", error);
     throw new Error("Failed to accept loan request");
@@ -307,15 +270,16 @@ export async function updateLoanStatus(data: {
   status: string;
 }) {
   try {
-    const loan = await prisma.loan.update({
+    const loan = (await prisma.loan.update({
       where: { id: data.loanId },
       data: {
-        status: data.status,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        status: data.status as any,
       },
-    });
+    })) as unknown as Loan;
 
     revalidatePath(`/loans/${data.loanId}`);
-    return sanitizeLoan(loan);
+    return sanitizeLoan(loan) as unknown as Loan;
   } catch (error) {
     console.error("Error updating loan status:", error);
     throw new Error("Failed to update loan status");
@@ -324,7 +288,7 @@ export async function updateLoanStatus(data: {
 
 export async function getLoanById(id: string): Promise<Loan> {
   try {
-    const loan = await prisma.loan.findUnique({
+    const loan = (await prisma.loan.findUnique({
       where: { id },
       include: {
         borrower: {
@@ -340,9 +304,9 @@ export async function getLoanById(id: string): Promise<Loan> {
           },
         },
       },
-    });
+    })) as unknown as Loan;
 
-    return sanitizeLoan(loan);
+    return sanitizeLoan(loan) as unknown as Loan;
   } catch (error) {
     console.error("Error fetching loan:", error);
     throw new Error("Failed to fetch loan");

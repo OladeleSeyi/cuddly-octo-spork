@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { getUserLoans } from "@/lib/actions";
-import { Loan } from "@/types";
 
 export default async function LoansPage() {
   const session = await auth();

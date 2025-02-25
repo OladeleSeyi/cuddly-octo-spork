@@ -160,7 +160,7 @@ export function CreateLoanForm({ userId }: { userId: string }) {
                       <Input placeholder="5.5" {...field} />
                     </FormControl>
                     <FormDescription>
-                      The highest interest rate you're willing to accept
+                      The highest interest rate you&apos;re willing to accept
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

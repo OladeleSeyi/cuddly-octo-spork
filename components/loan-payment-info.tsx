@@ -82,20 +82,29 @@ export function LoanPaymentInfo({ loan }: { loan: Loan }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loan.paymentSchedule?.map((payment: any) => (
-                    <TableRow key={payment.paymentNumber}>
-                      <TableCell>{payment.paymentNumber}</TableCell>
-                      <TableCell>
-                        {format(new Date(payment.dueDate), "PP")}
-                      </TableCell>
-                      <TableCell>${payment.payment.toFixed(2)}</TableCell>
-                      <TableCell>${payment.principal.toFixed(2)}</TableCell>
-                      <TableCell>${payment.interest.toFixed(2)}</TableCell>
-                      <TableCell>
-                        ${payment.remainingBalance.toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {loan.paymentSchedule?.map(
+                    (payment: {
+                      paymentNumber: number;
+                      dueDate: string;
+                      payment: number;
+                      principal: number;
+                      remainingBalance: number;
+                      interest: number;
+                    }) => (
+                      <TableRow key={payment.paymentNumber}>
+                        <TableCell>{payment.paymentNumber}</TableCell>
+                        <TableCell>
+                          {format(new Date(payment.dueDate), "PP")}
+                        </TableCell>
+                        <TableCell>${payment.payment.toFixed(2)}</TableCell>
+                        <TableCell>${payment.principal.toFixed(2)}</TableCell>
+                        <TableCell>${payment.interest.toFixed(2)}</TableCell>
+                        <TableCell>
+                          ${payment.remainingBalance.toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  )}
                 </TableBody>
               </Table>
             </div>

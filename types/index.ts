@@ -1,21 +1,28 @@
-export type Loan = {
+export type LoanStatus =
+  | "PENDING"
+  | "APPROVED"
+  | "ACTIVE"
+  | "COMPLETED"
+  | "DEFAULTED";
+
+export interface Loan {
   id: string;
   borrowerId: string;
   borrowerName?: string;
-  borrower?: { name: string; image: string };
+  borrower?: { name: string | null; image: string | null };
   amount: string;
   interestRate: string;
   termMonths: string;
   startDate: Date;
   endDate: Date;
-  status: "PENDING" | "APPROVED" | "ACTIVE" | "COMPLETED" | "DEFAULTED";
+  status: LoanStatus;
   monthlyPayment: string;
   totalPaid: string;
   lateFees: string;
   outstandingBalance: string;
   lenderId: string;
   lenderName?: string;
-  lender?: { name: string; image: string };
+  lender?: { name: string | null; image: string | null };
   paymentSchedule?: {
     paymentNumber: number;
     dueDate: string;
@@ -25,7 +32,7 @@ export type Loan = {
     remainingBalance: number;
   }[];
   notes?: string;
-};
+}
 
 export interface CreateLoanData {
   purpose: string;

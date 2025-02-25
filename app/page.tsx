@@ -2,7 +2,6 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { redirect } from "next/navigation";
 
 export default async function HomePage() {
   const session = await auth();

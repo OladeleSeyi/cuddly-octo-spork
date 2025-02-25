@@ -1,13 +1,12 @@
 import { Loan } from "@/types";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "./ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { createAvatarFallback } from "@/lib/utils";
 
 export function BorrowerInfo({ loan }: { loan: Loan }) {
+  const fallbackText = createAvatarFallback(
+    (loan.borrower?.name || loan.borrowerName) as string
+  );
   return (
     <Card>
       <CardHeader>
@@ -15,14 +14,15 @@ export function BorrowerInfo({ loan }: { loan: Loan }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-center">
-          <img
-            src={
-              (loan?.borrower?.image ||
-                "https://docs.material-tailwind.com/img/face-2.jpg") as string
-            }
-            alt="avatar"
-            className="w-200 h-200 rounded-lg"
-          />
+          <Avatar className="w-200 h-200  rounded-lg">
+            <AvatarImage
+              src={loan.borrower?.image as string}
+              alt={loan.borrower?.name as string}
+            />
+            <AvatarFallback className="rounded-lg">
+              {fallbackText}
+            </AvatarFallback>
+          </Avatar>
         </div>
         <div className="text-center">
           <div className="flex justify-center items-center space-x-2">

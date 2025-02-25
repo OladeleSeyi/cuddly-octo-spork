@@ -9,7 +9,11 @@ import { BorrowerInfo } from "@/components/borrower-information";
 import { LoanPaymentInfo } from "@/components/loan-payment-info";
 import { LoanDescription } from "@/components/loan-description";
 
-export default async function LoanPage({ params }: { params: { id: string } }) {
+export default async function LoanPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const session = await auth();
   const { id } = await params;
 

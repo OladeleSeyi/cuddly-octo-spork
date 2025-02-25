@@ -34,7 +34,8 @@ export function LoanActions({
       });
       toast.success("Loan request accepted successfully");
       router.refresh();
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error: unknown) {
       toast.error("Failed to accept loan request");
     } finally {
       setIsLoading(false);
@@ -50,6 +51,7 @@ export function LoanActions({
       });
       toast.success("Loan status updated successfully");
       router.refresh();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Failed to update loan status");
     } finally {

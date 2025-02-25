@@ -1,18 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
-} from "lucide-react";
+import { Bot, GalleryVerticalEnd, SquareTerminal } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -77,8 +66,8 @@ export function AppSidebar({
   user?: User;
 }) {
   const navUser = {
-    name: user?.name!,
-    email: user?.email!,
+    name: user?.name,
+    email: user?.email,
     avatar: user?.image as string,
   };
   return (
@@ -90,7 +79,9 @@ export function AppSidebar({
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={navUser} />
+        <NavUser
+          user={navUser as { name: string; email: string; avatar: string }}
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
