@@ -8,44 +8,40 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  name      String?
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
   image         String?
-  password  String?
+  password      String?
   emailVerified DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  // Relationships
-  loansGiven   Loan[] @relation("LenderLoans")
-  loansTaken   Loan[] @relation("BorrowerLoans")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  loansTaken    Loan[]    @relation("BorrowerLoans")
+  loansGiven    Loan[]    @relation("LenderLoans")
 }
 
 model Loan {
-  id                String    @id @default(uuid())
-  lenderId          String
-  borrowerId        String
-  amount            Decimal   @db.Decimal(10, 2)
-  interestRate      Decimal   @db.Decimal(5, 2)
-  termMonths        Int
-  startDate         DateTime
-  endDate           DateTime
-  status            LoanStatus
-  outstandingBalance Decimal  @db.Decimal(10, 2)
-  monthlyPayment    Decimal   @db.Decimal(10, 2)
-  totalPaid         Decimal   @db.Decimal(10, 2) @default(0)
-  lateFees          Decimal   @db.Decimal(10, 2) @default(0)
-  collateral        String?
-  paymentSchedule   Json?
-  riskRating        Int?
-  notes             String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  // Relationships
-  lender            User      @relation("LenderLoans", fields: [lenderId], references: [id])
-  borrower          User      @relation("BorrowerLoans", fields: [borrowerId], references: [id])
+  id                 String     @id @default(uuid())
+  lenderId           String?
+  borrowerId         String
+  amount             Decimal    @db.Decimal(10, 2)
+  interestRate       Decimal    @db.Decimal(5, 2)
+  termMonths         Int
+  startDate          DateTime
+  endDate            DateTime
+  status             LoanStatus
+  outstandingBalance Decimal    @db.Decimal(10, 2)
+  monthlyPayment     Decimal    @db.Decimal(10, 2)
+  totalPaid          Decimal    @default(0) @db.Decimal(10, 2)
+  lateFees           Decimal    @default(0) @db.Decimal(10, 2)
+  collateral         String?
+  paymentSchedule    Json?
+  riskRating         Int?
+  notes              String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  borrower           User       @relation("BorrowerLoans", fields: [borrowerId], references: [id])
+  lender             User?       @relation("LenderLoans", fields: [lenderId], references: [id])
 
   @@index([lenderId])
   @@index([borrowerId])
