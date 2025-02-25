@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/sidebar";
 import { User } from "next-auth";
 
-// This is sample data.
 const data = {
   teams: [
     {
@@ -54,6 +53,10 @@ const data = {
       icon: Bot,
       items: [
         {
+          title: "Create a Loan",
+          url: "/loans/create",
+        },
+        {
           title: "Borrowed",
           url: "/loans/user",
         },
@@ -76,7 +79,7 @@ export function AppSidebar({
   const navUser = {
     name: user?.name!,
     email: user?.email!,
-    avatar: user?.image || "/avatars/shadcn.jpg",
+    avatar: user?.image as string,
   };
   return (
     <Sidebar collapsible="icon" {...props}>
