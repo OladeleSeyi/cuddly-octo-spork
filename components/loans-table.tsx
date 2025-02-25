@@ -42,7 +42,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Loan } from "@/types";
-import { statusColors } from "@/lib/constants";
+
 import { Card, CardContent } from "./ui/card";
 
 export function LoansTable({
@@ -57,6 +57,13 @@ export function LoansTable({
   };
   isLoading: boolean;
 }) {
+  const statusColors = {
+    PENDING: "bg-yellow-500",
+    APPROVED: "bg-blue-500",
+    ACTIVE: "bg-green-500",
+    COMPLETED: "bg-gray-500",
+    DEFAULTED: "bg-red-500",
+  } as const;
   const loans = loansData?.loans || [];
   const router = useRouter();
   const [sorting, setSorting] = React.useState<SortingState>([]);

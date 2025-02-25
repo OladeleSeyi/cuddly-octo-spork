@@ -8,13 +8,20 @@ import { Loan } from "@/types";
 import { BorrowerInfo } from "@/components/borrower-information";
 import { LoanPaymentInfo } from "@/components/loan-payment-info";
 import { LoanDescription } from "@/components/loan-description";
-import { statusColors } from "@/lib/constants";
 
 export default async function LoanPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const statusColors = {
+    PENDING: "bg-yellow-500",
+    APPROVED: "bg-blue-500",
+    ACTIVE: "bg-green-500",
+    COMPLETED: "bg-gray-500",
+    DEFAULTED: "bg-red-500",
+  } as const;
+
   const session = await auth();
   const { id } = await params;
 

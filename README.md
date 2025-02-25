@@ -8,6 +8,13 @@ The idea here is to give an idea of how one might approach publishing loans - to
 
 All work was done on the main branch (anti-pattern) for speed and efficiency and the project leans heavily on Vercel's VO
 
+Possible Improvements
+
+- introduction of apm software like Sentry for better error handling
+- better and more granular components that follow domain driven design (i.e a component like borrower informatin is generic and can be in root/components but a component like signup form must be in root/signup/components)
+- Granular testing
+- Introduction of Edge support for prisma and Next auth
+
 ## Getting Started
 
 First install required dependencies.
